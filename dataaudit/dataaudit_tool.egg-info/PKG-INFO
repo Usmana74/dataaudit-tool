@@ -1,0 +1,48 @@
+Metadata-Version: 2.4
+Name: dataaudit-tool
+Version: 0.1.1
+Summary: Automated data quality audit tool for CSV files and DataFrames
+Author-email: Usman Ahmad <musmanahmad78@gmail.com>
+Project-URL: Homepage, https://github.com/Usmana74/dataaudit
+Keywords: data,audit,eda,cleaning,preprocessing,machine learning
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: pandas>=1.3
+Requires-Dist: numpy>=1.21
+Requires-Dist: scipy>=1.7
+Requires-Dist: fpdf2>=2.7
+
+# dataaudit
+
+Automated data quality audit library for CSV files and pandas DataFrames.
+
+## Install
+pip install dataaudit
+
+## Usage
+import dataaudit as da
+
+# Full audit with optional PDF export
+da.run("your_data.csv")
+
+# Individual functions
+da.summary("your_data.csv")
+da.missing("your_data.csv")
+da.duplicates("your_data.csv")
+da.outliers("your_data.csv")
+da.skewness("your_data.csv")
+da.cardinality("your_data.csv")
+da.dtypes("your_data.csv")
+da.correlation("your_data.csv")
+da.unique_values("your_data.csv")
+da.value_counts("your_data.csv", "column_name")
+da.memory_usage("your_data.csv")
+
+# Works with DataFrames too
+import pandas as pd
+df = pd.read_csv("data.csv")
+da.run(df)
