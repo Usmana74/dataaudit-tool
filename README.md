@@ -1,140 +1,147 @@
-# dataaudit-tool
+# dataaudit
 
-![PyPI version](https://img.shields.io/pypi/v/dataaudit-tool)
-![Python](https://img.shields.io/pypi/pyversions/dataaudit-tool)
-![License](https://img.shields.io/pypi/l/dataaudit-tool)
-![Downloads](https://img.shields.io/pypi/dm/dataaudit-tool)
+> **Automated ML dataset auditing in a single function call.**
 
-A Python library that runs a **complete data quality audit** on any CSV file or 
-pandas DataFrame in one single command — with an optional PDF report export.
+[![PyPI version](https://img.shields.io/pypi/v/dataaudit-tool.svg)](https://pypi.org/project/dataaudit-tool/)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/dataaudit-tool.svg)](https://pypi.org/project/dataaudit-tool/)
 
-Built by a data engineering student who got tired of running 10 functions 
-manually on every new dataset.
+`dataaudit` replaces 10–15 manual EDA inspection steps with a single function call. Pass any CSV filepath or pandas DataFrame — get a complete data quality report covering missing values, outliers, skewness, cardinality, correlation, memory usage, and more. Optionally export the full report as a styled PDF.
+
+Built for ML practitioners who want actionable pre-processing diagnostics fast.
 
 ---
 
 ## Install
 
+```bash
 pip install dataaudit-tool
+```
 
 ---
 
 ## Quickstart
 
+```python
 import dataaudit as da
 
-# Full audit + optional PDF download
+# Full audit — CSV file
 da.run("your_data.csv")
 
-# Works with DataFrames too
+# Full audit — pandas DataFrame
 import pandas as pd
 df = pd.read_csv("data.csv")
 da.run(df)
+```
+
+Output includes shape, missing values with imputation recommendations, duplicate detection, IQR-based outlier detection, skewness flags, cardinality analysis, high-correlation pairs, and memory usage — all with colour-coded actionability flags.
+
+At the end, you are prompted to export the full report as a **PDF** (`_dataaudit_report.pdf`).
 
 ---
 
-## What da.run() gives you
+## Full API
 
-| Check | What it detects |
-|---|---|
-| Missing Values | Count, percentage, and recommendation per column |
-| Duplicates | Total duplicate rows with fix suggestion |
-| Outliers | IQR-based outlier count per numeric column |
-| Skewness | Skew score + log transform recommendation |
-| Cardinality | Unique value % for categorical columns |
-| Data Types | dtype of every column |
-| Correlation | Column pairs with correlation >= 0.8 |
-| Unique Values | Unique count per column |
-| Memory Usage | Memory consumption per column in KB |
+All functions accept either a **CSV filepath** (string) or a **pandas DataFrame**.
 
-At the end, it asks:
-
-  Download PDF report? (y/n):
-
-Enter y and it saves a clean formatted PDF report to your working directory.
-
----
-
-## Individual Functions
-
-You can also run each check independently:
-
+```python
 import dataaudit as da
 
-da.summary("data.csv")           # rows, cols, memory, dtype counts
-da.missing("data.csv")           # missing values per column
-da.duplicates("data.csv")        # duplicate row count
-da.outliers("data.csv")          # IQR outlier detection
-da.skewness("data.csv")          # skewness per numeric column
-da.cardinality("data.csv")       # unique value analysis
-da.dtypes("data.csv")            # data types
-da.correlation("data.csv")       # high correlation pairs
-da.unique_values("data.csv")     # unique count per column
-da.value_counts("data.csv", "column_name")  # value counts for one column
-da.memory_usage("data.csv")      # memory per column
+da.summary(file)                        # Shape, memory, column type breakdown
+da.missing(file)                        # Missing counts + imputation recommendations
+da.duplicates(file)                     # Duplicate row detection
+da.outliers(file)                       # IQR-based outlier detection per numeric column
+da.skewness(file)                       # Skewness with log-transform recommendations
+da.cardinality(file)                    # Unique value counts for categorical columns
+da.dtypes(file)                         # Data types for all columns
+da.correlation(file, threshold=0.8)     # Highly correlated column pairs
+da.unique_values(file)                  # Unique value counts for all columns
+da.value_counts(file, "column_name")    # Value frequency for a specific column
+da.memory_usage(file)                   # Per-column memory footprint
+
+da.run(file)                            # Run all of the above + optional PDF export
+```
 
 ---
 
 ## Example Output
 
-  Analyzing titanic.csv...
-
-  SUMMARY
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SUMMARY — titanic.csv
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Rows        : 891
   Columns     : 12
-  Memory Usage: 285.61 KB
+  Memory Usage: 83.6 KB
+  Numeric Cols: 7
+  Object Cols : 5
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MISSING VALUES
-  Age       177 missing (19.87%)  [!!] Impute recommended
-  Cabin     687 missing (77.10%)  [XX] Drop recommended
-  Embarked  2 missing (0.22%)     [OK] Safe to impute
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Age                  177 missing (19.87%)  ⚠ Impute recommended
+  Cabin                687 missing (77.1%)   ✖ Drop recommended
+  Embarked             2 missing (0.22%)     ✔ Safe to impute
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   OUTLIERS (IQR Method)
-  Fare      116 outliers  [!!] Investigate
-  Age       11 outliers   [!!] Investigate
-
-  Download PDF report? (y/n): y
-  [OK] Report saved -> titanic_dataaudit_report.pdf
-
----
-
-## Roadmap
-
-- v0.1.1 - Bug fixes, Unicode PDF support
-- v0.2.0 - da.fix() — auto-correct common issues (impute, drop, scale)
-- v0.3.0 - Excel (.xlsx) support
-- v0.4.0 - Distribution plots embedded in PDF
-- v0.5.0 - HTML report option
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Age                  11 outliers    ⚠ Investigate
+  Fare                 116 outliers   ⚠ Investigate
+  SibSp                46 outliers    ⚠ Investigate
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 ---
 
-## Requirements
+## PDF Report
 
-- Python >= 3.8
-- pandas
-- numpy
-- scipy
-- fpdf2
+Calling `da.run(file)` prompts you to export a styled PDF report with:
+- Dark-header branding, colour-coded flags (green / amber / red)
+- All 9 audit sections in sequence
+- Per-column memory breakdown
+- Auto page breaks, footer with page numbers
 
 ---
 
-## License
+## Repository Structure
 
-MIT License — free to use, modify, and distribute.
+```
+dataaudit/
+├── dataaudit/
+│   ├── __init__.py       # Public API exports
+│   ├── core.py           # All audit functions
+│   └── report.py         # PDF generation (fpdf2)
+├── pyproject.toml        # PyPI packaging config
+├── README.md
+└── LICENSE
+```
+
+---
+
+## Dependencies
+
+```
+pandas>=1.3
+numpy>=1.21
+scipy>=1.7
+fpdf2>=2.7
+```
+
+---
+
+## Motivation
+
+Every ML project starts the same way: load the data, manually check shape, count nulls, look for duplicates, scan for outliers, check correlations. This is 15–20 lines of boilerplate that gets rewritten from scratch every time. `dataaudit` collapses that into one call with opinionated, actionable output — so you spend time on modelling, not on setup.
 
 ---
 
 ## Author
 
-**Usman Ahmad**
-3rd Year CS Student 
+**Mohammad Usman Ahmad**
+BS Computer Science (AI/CV), PMAS Arid Agriculture University, Pakistan · CGPA: 3.8/4.0
 
-GitHub: github.com/Usmana74
-PyPI: pypi.org/project/dataaudit-tool
-
----
-
-## Contributing
-
-Pull requests are welcome. For major changes, open an issue first.
-If this saved you time, consider giving it a star!
+[GitHub](https://github.com/Usmana74) · [LinkedIn](https://linkedin.com/in/usman-ahmad-297b63262) · [PyPI](https://pypi.org/project/dataaudit-tool/)
